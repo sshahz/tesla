@@ -9953,7 +9953,7 @@ static void run_rebalance_domains(struct softirq_action *h)
 	 * and abort nohz_idle_balance altogether if we pull some load.
 	 */
 	nohz_idle_balance(this_rq, idle);
-        rebalance_domains(this_rq, idle);
+	rebalance_domains(this_rq, idle);
 }
 
 /*
