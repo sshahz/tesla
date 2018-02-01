@@ -229,6 +229,11 @@ static int set_max_cpus(const char *buf, const struct kernel_param *kp)
 	const char *cp = buf;
 	int val;
 
+	int msm_perf = strcmp(current->comm, "vendor.qti.hardware.perf@1.0-service");
+
+	if (msm_perf == 0)
+		return -EINVAL;
+
 	if (!clusters_inited)
 		return -EINVAL;
 
@@ -506,6 +511,10 @@ static int set_cpu_max_freq(const char *buf, const struct kernel_param *kp)
 	if(!touchboost)
 		return 0;
 #endif
+	int msm_perf = strcmp(current->comm, "vendor.qti.hardware.perf@1.0-service");
+
+	if (msm_perf == 0)
+		return ret;
 
 	while ((cp = strpbrk(cp + 1, " :")))
 		ntokens++;
@@ -1434,6 +1443,11 @@ static int set_workload_detect(const char *buf, const struct kernel_param *kp)
 	unsigned int val, i;
 	struct cluster *i_cl;
 	unsigned long flags;
+
+	int msm_perf = strcmp(current->comm, "vendor.qti.hardware.perf@1.0-service");
+
+        if (msm_perf && !touchboost)
+               return -EINVAL;
 
 	if (!clusters_inited)
 		return -EINVAL;
