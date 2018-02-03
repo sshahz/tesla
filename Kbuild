@@ -99,3 +99,7 @@ missing-syscalls: scripts/checksyscalls.sh $(offsets-file) FORCE
 
 # Keep these two files during make clean
 no-clean-files := $(bounds-file) $(offsets-file)
+
+BUILD_DEBUG_VERSION := 0
+
+EXTRA_CFLAGS += -Wno-unused-function -Wno-unused-variable
