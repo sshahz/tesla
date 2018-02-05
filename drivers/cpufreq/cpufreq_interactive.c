@@ -1708,7 +1708,7 @@ static struct cpufreq_interactive_tunables *alloc_tunable(
 	tunables->target_loads = default_target_loads;
 	tunables->ntarget_loads = ARRAY_SIZE(default_target_loads);
 	if (policy->cpu == 0) {
-		tunables->fast_ramp_down = 1;
+		tunables->fast_ramp_down = 0;
 		tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME;
 	} else {
 		tunables->fast_ramp_down = 1;
