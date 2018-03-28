@@ -18,7 +18,6 @@
 		/delete-property/ i2c12;
 		/delete-property/ spi12;
 	};
-	/delete-node/ firmware;
 };
 
 &soc {
@@ -40,7 +39,7 @@
 		qcom,clk-freq-in  = <19200000>;
 		clock-names = "iface_clk", "core_clk";
 		clocks = <&clock_gcc clk_gcc_blsp1_ahb_clk>,
-			<&clock_gcc clk_gcc_blsp1_qup1_i2c_apps_clk>;
+			 <&clock_gcc clk_gcc_blsp1_qup1_i2c_apps_clk>;
 		pinctrl-names = "i2c_active", "i2c_sleep";
 		pinctrl-0 = <&i2c_1_active>;
 		pinctrl-1 = <&i2c_1_sleep>;
@@ -233,6 +232,21 @@
 			};
 		};
 	};
+	
+	/*add for max86x00*/
+	max86x00_mux {
+		max86x00_default: default {
+			mux {
+				pins = "gpio123";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio123";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
 };
 
 &ts_active {
@@ -277,7 +291,7 @@
 
 &pm8994_gpios {
 	/delete-node/ gpio@cd00;
-	
+    
 	gpio@d500 { /* GPIO 22 - lcd_bklt_reg_en */
 		qcom,mode = <1>;	/* DIGITAL OUT */
 		qcom,output-type = <0>;		/* CMOS logic */
@@ -295,7 +309,7 @@
 		reg = <0xa000 0x100>;
 		qcom,pin-num = <1>;
 		qcom,invert = <0>;
-		qcom,vin-sel = <0>;
+        qcom,vin-sel = <0>;
 	};
 };
 
@@ -344,4 +358,12 @@
 
 &i2c_8 {
 	/delete-node/ nq@28;
+};
+
+&firmware {
+	android {
+		fstab {
+			/delete-node/ vendor;
+		};
+	};
 };
