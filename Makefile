@@ -214,6 +214,7 @@ VPATH		:= $(srctree)$(if $(KBUILD_EXTMOD),:$(KBUILD_EXTMOD))
 
 export srctree objtree VPATH
 
+CCACHE := $(shell which ccache)
 
 # SUBARCH tells the usermode build what the underlying arch is.  That is set
 # first, and if a usermode build is happening, the "ARCH=um" on the command
@@ -295,16 +296,15 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-HOSTCC       = gcc
-HOSTCXX      = g++
-HOSTCFLAGS   = -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O3
+HOSTCC       = $(CCACHE) gcc
+HOSTCXX      = $(CCACHE) g++
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O2
 
 ifeq ($(shell $(HOSTCC) -v 2>&1 | grep -c "clang version"), 1)
 HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
 		-Wno-missing-field-initializers -fno-delete-null-pointer-checks
 endif
-
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
 
@@ -354,7 +354,7 @@ include $(srctree)/scripts/Kbuild.include
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
-CC		= $(CROSS_COMPILE)gcc
+CC		= $(CCACHE) $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -373,7 +373,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
+LDFLAGS_MODULE  = --strip-debug
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im
@@ -399,8 +399,10 @@ LINUXINCLUDE    := \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wundef -Wstrict-prototypes -Wno-trigraphs \
+KBUILD_CFLAGS   := -Werror -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
+		   -Wno-incompatible-pointer-types \
+		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -std=gnu89
 
@@ -623,6 +625,27 @@ KBUILD_CFLAGS   += $(call cc-option,-fno-store-merging,)
 # Kill format truncation warnings
 KBUILD_CFLAGS   += $(call cc-disable-warning,format-truncation,)
 
+# Some of those needed to disable annoying warning on GCC 7.x, 8.x
+KBUILD_CFLAGS 	+= $(call cc-disable-warning, maybe-uninitialized,) \
+		   $(call cc-disable-warning, unused-variable,) \
+		   $(call cc-disable-warning, unused-function,) \
+		   $(call cc-disable-warning, tautological-compare,) \
+		   $(call cc-disable-warning, return-local-addr,) \
+		   $(call cc-disable-warning, array-bounds,) \
+		   $(call cc-disable-warning, misleading-indentation,) \
+		   $(call cc-disable-warning, switch-unreachable,) \
+		   $(call cc-disable-warning, memset-elt-size,) \
+		   $(call cc-disable-warning, bool-operation,) \
+		   $(call cc-disable-warning, parentheses,) \
+		   $(call cc-disable-warning, bool-compare,) \
+		   $(call cc-disable-warning, duplicate-decl-specifier,) \
+		   $(call cc-disable-warning, stringop-overflow,) \
+		   $(call cc-disable-warning, discarded-array-qualifiers,) \
+		   $(call cc-disable-warning, attribute-alias,) \
+		   $(call cc-disable-warning, sizeof-pointer-memaccess,) \
+		   $(call cc-disable-warning, packed-not-aligned,) \
+		   $(call cc-disable-warning, deprecated-declarations,) \
+		    
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
@@ -691,10 +714,11 @@ ifdef CONFIG_KCOV
   endif
 endif
 
+KBUILD_CFLAGS += $(call cc-disable-warning, unused-variable)
+
 ifeq ($(COMPILER),clang)
 KBUILD_CPPFLAGS += $(call cc-option,-Qunused-arguments,)
 KBUILD_CPPFLAGS += $(call cc-option,-Wno-unknown-warning-option,)
-KBUILD_CFLAGS += $(call cc-disable-warning, unused-variable)
 KBUILD_CFLAGS += $(call cc-disable-warning, format-invalid-specifier)
 KBUILD_CFLAGS += $(call cc-disable-warning, gnu)
 # Quiet clang warning: comparison of unsigned expression < 0 is always false
