@@ -1444,9 +1444,6 @@ static int set_workload_detect(const char *buf, const struct kernel_param *kp)
 
 	int msm_perf = strcmp(current->comm, "vendor.qti.hardware.perf@1.0-service");
 
-        if (msm_perf && !touchboost)
-               return -EINVAL;
-
 	if (!clusters_inited)
 		return -EINVAL;
 
